@@ -1,0 +1,125 @@
+﻿@page "/SetGallery";
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+@using Newtonsoft.Json
+
+<div style="background-color: black; color: green; height:150vh; width:100%;">
+    <input type="text" style="width:100%;" @bind-value="SearchString" />
+    
+    <!--Set gallery container (Contains all elements)-->
+    <div>
+        <!--A container for one element each.-->
+        @for (int i = 0; i < setsInfo.Count(); i++)
+        {
+            <div style="border:5px groove black; grid-template-columns: auto 33%;
+                        display:grid;">
+                <div>
+                    <p>Set ID:@setsInfo[i].SetID</p>
+                    <p>Set Name: @setsInfo[i].SetName</p>
+                    <p>Is Tested: @setsInfo[i].IsTested</p>
+                    <a href="https://localhost:7130/SetDetails?ID=@setsInfo[i].SetID">Examine</a>
+                </div>
+
+                <img src="@setsInfo[i].ImageURL" style="max-width:30%; ">
+            </div>
+        }
+    </div>
+</div>
+@code {
+    public string IncomingJsonString = "TestValue";
+
+    public void GetJSONRequest()
+    {
+        IncomingJsonString = APIAccessor.SendGetRequest("https://localhost:7156/SetGallery");
+        StateHasChanged();
+        DeserializeJSON();
+    }
+
+    public void DeserializeJSON()
+    {
+        dynamic arrayOfSetInfoObjects = JsonConvert.DeserializeObject(IncomingJsonString);
+        List<SetDetailsInfo> tempList = new();
+        foreach(var item in arrayOfSetInfoObjects)
+        {
+            SetDetailsInfo newElement = new()
+                {
+                    SetName = item.Name,
+                    SetID = item.SetID,
+                    ImageURL = item.PhotoURL,
+                    IsTested = item.IsTested,
+                    TotalNumberOfPieces = item.TotalSetPieces,
+                    Notes = ""
+                };
+
+            tempList.Add(newElement);
+        }
+        tempList.TrimExcess();
+
+        setsInfo = tempList.ToArray();
+    }
+
+    protected override void OnInitialized()
+    {
+        GetJSONRequest();
+    }
+
+
+
+
+
+    public class SetDetailsInfo
+    {
+        public required string SetName
+        {
+            init;
+            get;
+        }
+        public required string SetID
+        {
+            init;
+            get;
+        }
+        public required string ImageURL
+        {
+            init;
+            get;
+        }
+        public required int TotalNumberOfPieces
+        {
+            init;
+            get;
+        }
+        public required string Notes
+        {
+            init;
+            get;
+        }
+        public required bool IsTested
+        {
+            init;
+            get;
+        }
+    }
+
+    public SetDetailsInfo[] setsInfo =
+    [
+        new SetDetailsInfo(){
+            SetName = "Santa's Sleigh Set",
+            SetID = "40499",
+            ImageURL = "SantasSleighImage.jpg",
+            TotalNumberOfPieces = 343,
+            Notes = "Notes are displayed here.",
+            IsTested = true
+        },
+        new SetDetailsInfo(){
+            SetName = "Jack-O'-Lantern Pickup Truck",
+            SetID = "40822",
+            ImageURL = "JackOLanturnPickupTruck.png",
+            TotalNumberOfPieces = 177,
+            Notes = "More notes are displayed here.",
+            IsTested = false
+        }
+    ];
+
+    public string? SearchString { get; set; }
+}

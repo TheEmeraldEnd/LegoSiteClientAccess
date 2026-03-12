@@ -1,0 +1,19 @@
+﻿@page "/index"
+@using LegoSiteClientAccess;
+@rendermode InteractiveServer
+<h3>Index</h3>
+
+<button class="btn btn-primary" @onclick="GetRequest">Update List</button>
+<p role="status">Var: @testVariable</p>
+<p role="status">@counter</p>
+
+@code {
+	public string testVariable = "Null";
+	public int counter = 0;
+	public void GetRequest()
+	{
+		counter++;
+		testVariable = APIAccessor.SendGetRequest("https://localhost:5161/SetGallery");
+		StateHasChanged();
+	}
+}

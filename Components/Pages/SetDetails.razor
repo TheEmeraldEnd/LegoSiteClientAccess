@@ -1,0 +1,356 @@
+﻿@page "/SetDetails"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@using Newtonsoft.Json;
+
+<div class="BackgroundImage" style="
+    background-image:url(@setInfo.ImageURL); 
+" ></div>
+@* Blur element and container *@
+<div class="BackgroundImageFilter">
+
+    @* Nav bar *@
+    <div id="NavBar">
+        <a href="SetGallery" style="align-content: center;">
+            Back to Gallery
+        </a>
+        <h2 style=" display:flex; color:green; justify-content:center; margin-left:auto; margin-right:auto;">
+            @setInfo.SetName Details
+        </h2>
+    </div>
+
+    @* Tabs Buttons *@
+    <div style="padding:0; margin:10px; font-size:0; margin-bottom:0; position:relative;">
+        <button class="TabButton SetInfoTabRelated" @onclick="DisplaySetInfoTab">
+            Info
+        </button>
+        <button class="TabButton BagInfoTabRelated" @onclick="DisplayBagInfoTab">
+            Bag Info
+        </button>
+        <button class="TabButton NotesTabRelated" @onclick="DisplayNotesTab">
+            Notes
+        </button>
+            
+    </div>
+
+    @* Set Info Tab *@
+    <div class="Tab SetInfoTabRelated" style="@(_isSetInfoVisible ? "" : "Display:none;")">
+        <b>Set:</b> @setInfo.SetName<br>
+        <b>SetID:</b> @setInfo.SetID<br>
+        <b># of Pieces:</b> @setInfo.TotalNumberOfPieces<br>
+        <b>Photo:</b><br>
+        <img src="@setInfo.ImageURL" style="max-width: 400px;">
+    </div>
+
+    @* Bag Info Tab *@
+    <div class="Tab BagInfoTabRelated DisplayFlexOverridable" style="
+        flex-direction:column; @(_isBagInfoVisible ? "" : "Display:none;")">
+
+        @for(int i = 0; i < BagInfoKeeper.Count; i++)
+        {
+            @*Bag Element*@
+            <details>
+                <summary style="display:flex; flex-direction:row; border:solid black 2px; margin-left:10px; margin-right:10px;
+                        padding:0;">
+                        <p>Bag @BagInfoKeeper[i].BagNumber </p>
+                        <div style="font-size:0; margin-left:auto; margin-top:auto; margin-bottom: auto; margin-right:10px">
+                    </div>
+                </summary>
+
+                @for (int j = 0; j < BagInfoKeeper[i].BagInfoLines.Count; j++)
+                {
+                    <!--Lego Element-->
+                    <div class ="DisplayFlexOverridable" 
+                        style="margin-left:20px; margin-right:20px; 
+                            border:solid black 2px; flex-direction:row;">
+                        <p>
+                            LegoID: @BagInfoKeeper[i].BagInfoLines[j].LegoID<br>
+                            Sticker Number: @BagInfoKeeper[i].BagInfoLines[j].StickerNumber<br>
+                            Quantity: @BagInfoKeeper[i].BagInfoLines[j].Quantity<br />
+                        </p>
+                        <img src="@BagInfoKeeper[i].BagInfoLines[j].LegoImageURL" style="height:100px; margin-left:auto;">
+                    </div>
+                }
+            </details>
+            
+        }
+    </div>
+    @*Notes Tab*@
+    <div class="Tab NotesTabRelated DisplayFlexOverridable" 
+        style="flex-direction:column; padding:10px; @(_isNotesVisible ? "" : "Display:none;")">
+        <p>
+            @if(setInfo.IsTested){
+                <p>Is Tested: True;</p>
+                    
+            }
+            else
+            {
+                <p>Is Tested: False;</p>
+            }
+            Notes: <br>
+            <Textarea readonly name="text" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'
+                style="width:100%;">@setInfo.Notes</Textarea><!--Notes are displayed inside text area-->
+        </p>
+    </div>
+</div>
+
+@code{
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public string ID { get; set; }
+
+    #region Accessable Data Variables
+    public class SetDetailsInfo
+    {
+        public required string SetName
+        {
+            init;
+            get;
+        }
+        public required string SetID
+        {
+            init;
+            get;
+        }
+        public required string ImageURL
+        {
+            init;
+            get;
+        }
+        public required int TotalNumberOfPieces
+        {
+            init;
+            get;
+        }
+        public required string Notes
+        {
+            init;
+            get;
+        }
+        public required bool IsTested
+        {
+            init;
+            get;
+        }
+    }
+
+    public SetDetailsInfo setInfo = new SetDetailsInfo()
+    {
+        SetName = "Santa's Sleigh Set",
+        SetID = "40499",
+        ImageURL = "SantasSleighImage.jpg",
+        TotalNumberOfPieces = 343,
+        Notes = "Notes are displayed here.",
+        IsTested = true
+    };
+
+    public class BagInfo
+    {
+        public class BagInfoLine
+        {
+            public required string LegoID
+            {
+                get;
+                set;
+            }
+            public required string LegoImageURL
+            {
+                get; set;
+            }
+            public required string Quantity
+            {
+                get; set;
+            }
+            public required string StickerNumber
+            {
+                get; set;
+            }
+        }
+
+        public required string BagNumber
+        {
+            get;
+            set;
+        }
+        public List<BagInfoLine> BagInfoLines = new List<BagInfoLine>();
+
+        public void AddInfo(
+            string incomingLegoID,
+            string incomingLegoImageURL,
+            string incomingQuantity,
+            string incomingStickerNumber)
+        {
+            BagInfoLine newElement = new BagInfoLine()
+            {
+                LegoID = incomingLegoID,
+                LegoImageURL = incomingLegoImageURL,
+                Quantity = incomingQuantity,
+                StickerNumber = incomingStickerNumber
+            };
+
+            BagInfoLines.Add(newElement);
+            BagInfoLines.TrimExcess();
+        }
+
+        public void AddInfo(
+            string incomingLegoID,
+            string incomingLegoImageURL,
+            int incomingQuantity,
+            int incomingStickerNumber)
+        {
+            BagInfoLine newElement = new BagInfoLine()
+            {
+                LegoID = incomingLegoID,
+                LegoImageURL = incomingLegoImageURL,
+                Quantity = incomingQuantity.ToString(),
+                StickerNumber = incomingStickerNumber.ToString()
+            };
+
+            BagInfoLines.Add(newElement);
+            BagInfoLines.TrimExcess();
+        }
+    }
+
+    public static List<BagInfo> BagInfoKeeper { get; set; }
+    #endregion
+
+    #region Variable Initialization Methods
+    public static void InitializeBagInfoKeeper()
+    {
+        BagInfoKeeper = new List<BagInfo>();
+    }
+    public static void PopulateBagInfoKeeperWithTest()
+    {
+        BagInfo newElement = new BagInfo()
+        {
+            BagNumber = "0"
+        };
+
+        newElement.AddInfo("4624473", "LegoWheel.jpg", 1, 0);
+        newElement.AddInfo("4624473", "LegoWheel.jpg", 1, 0);
+
+
+        BagInfoKeeper.Add(newElement);
+
+        newElement = new BagInfo()
+        {
+            BagNumber = "1"
+        };
+
+        BagInfoKeeper.Add(newElement);
+
+        newElement = new BagInfo()
+        {
+            BagNumber = "2"
+        };
+        newElement.AddInfo("4624473", "LegoWheel.jpg", 1, 0);
+        BagInfoKeeper.Add(newElement);
+
+        BagInfoKeeper.TrimExcess();
+    }
+    #endregion
+
+    #region JSON
+    public string IncomingJsonString = "TestValue";
+
+    public void GetSetDetailsJSON()
+    {
+        IncomingJsonString = 
+            APIAccessor.SendGetRequest($"https://localhost:5161/SetDetails?setID={ID}");
+
+    }
+
+    public void DeserializeSetDetailsJSON()
+    {
+        dynamic jsonObject = JsonConvert.DeserializeObject(IncomingJsonString);
+        dynamic jsonElement = jsonObject[0];
+        SetDetailsInfo newSetInfo = new SetDetailsInfo()
+            {
+                SetName = jsonElement.Name,
+                SetID = jsonElement.SetID,
+                ImageURL = jsonElement.PhotoURL,
+                TotalNumberOfPieces = jsonElement.TotalSetPieces,
+                Notes = "",
+                IsTested = jsonElement.IsTested
+            };
+
+        setInfo = newSetInfo;
+    }
+
+    //NOTE: For some reason, not all details are being recieved (?) for set 21267 such as piece 6528869
+    //  not showing up. Might be similar to set 40499 but needs to be tested.
+    public void GetBagDetailsJSON()
+    {
+        IncomingJsonString =
+            APIAccessor.SendGetRequest($"https://localhost:5161/SetDetailsBagsInfo?setID={ID}");
+    }
+
+    public void DeserializeBagDetailsJSON()
+    {
+        dynamic jsonObject = JsonConvert.DeserializeObject(IncomingJsonString);
+        IncomingJsonString = jsonObject[0].ToString();
+        BagInfoKeeper = new();
+        foreach (var item in jsonObject)
+        {
+            //If the bag number doesn't exist in list, add in
+            if (!BagInfoKeeper.Any(bag => bag.BagNumber == item.BagNumber.ToString()))
+            {
+                BagInfo newBagElement = new()
+                    {
+                        BagNumber = item.BagNumber.ToString()
+                    };
+                BagInfoKeeper.Add(newBagElement);
+                BagInfoKeeper.TrimExcess();
+            }
+
+            BagInfoKeeper.First(bag => bag.BagNumber == item.BagNumber.ToString())
+                .AddInfo(
+                    item.LegoID.ToString(), 
+                    item.PhotoURL.ToString(), 
+                    item.TotalPerBagQuantity.ToString(), 
+                    item.StickerNumber.ToString());
+        }
+        
+    }
+    #endregion
+
+    #region Page events
+    protected override void OnInitialized()
+    {
+        InitializeBagInfoKeeper();
+
+        GetSetDetailsJSON();
+        DeserializeSetDetailsJSON();
+        GetBagDetailsJSON();
+        DeserializeBagDetailsJSON();
+    }
+    #endregion
+
+    #region Tab Display Code
+    public bool _isSetInfoVisible = true;
+    public bool _isBagInfoVisible = false;
+    public bool _isNotesVisible = false;
+
+    public void DisplaySetInfoTab()
+    {
+        _isSetInfoVisible = true;
+        _isBagInfoVisible = false;
+        _isNotesVisible = false;
+    }
+
+    public void DisplayBagInfoTab()
+    {
+        _isSetInfoVisible = false;
+        _isBagInfoVisible = true;
+        _isNotesVisible = false;
+    }
+
+    public void DisplayNotesTab()
+    {
+        _isSetInfoVisible = false;
+        _isBagInfoVisible = false;
+        _isNotesVisible = true;
+    }
+    #endregion
+
+}
