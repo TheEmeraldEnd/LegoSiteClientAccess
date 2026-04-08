@@ -256,7 +256,7 @@
     public void GetSetDetailsJSON()
     {
         IncomingJsonString = 
-            APIAccessor.SendGetRequest($"https://localhost:5161/SetDetails?setID={ID}");
+            APIAccessor.SendGetRequest($"http://localhost:5161/SetDetails?setID={ID}");
 
     }
 
@@ -282,7 +282,7 @@
     public void GetBagDetailsJSON()
     {
         IncomingJsonString =
-            APIAccessor.SendGetRequest($"https://localhost:5161/SetDetailsBagsInfo?setID={ID}");
+            APIAccessor.SendGetRequest($"http://localhost:5161/SetDetailsBagsInfo?setID={ID}");
     }
 
     public void DeserializeBagDetailsJSON()
@@ -310,7 +310,7 @@
                     item.TotalPerBagQuantity.ToString(), 
                     item.StickerNumber.ToString());
         }
-        
+
     }
     #endregion
 
@@ -318,6 +318,8 @@
     protected override void OnInitialized()
     {
         InitializeBagInfoKeeper();
+
+        //PopulateBagInfoKeeperWithTest();
 
         GetSetDetailsJSON();
         DeserializeSetDetailsJSON();
